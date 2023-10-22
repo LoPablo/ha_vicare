@@ -519,7 +519,7 @@ GLOBAL_SENSORS: tuple[ViCareSensorEntityDescription, ...] = (
     ViCareSensorEntityDescription(
         key="battery_power",
         name="Battery Power",
-        native_unit_of_measurement=UnitOfPower.WATT
+        native_unit_of_measurement=UnitOfPower.WATT,
         value_getter=lambda api: api.getElectricalEnergySystemPower(),
         device_class=SensorDeviceClass.POWER,
         state_class=SensorStateClass.MEASUREMENT,
@@ -527,7 +527,7 @@ GLOBAL_SENSORS: tuple[ViCareSensorEntityDescription, ...] = (
     ViCareSensorEntityDescription(
         key="pcc_transfer_power_exchange",
         name="PCC Transfer Power exchange",
-        native_unit_of_measurement=UnitOfPower.WATT
+        native_unit_of_measurement=UnitOfPower.WATT,
         value_getter=lambda api: api.getPointOfCommonCouplingTransferPowerExchange(),
         device_class=SensorDeviceClass.POWER,
         state_class=SensorStateClass.MEASUREMENT,
@@ -542,7 +542,7 @@ GLOBAL_SENSORS: tuple[ViCareSensorEntityDescription, ...] = (
     ViCareSensorEntityDescription(
         key="photovoltaic_production_current",
         name="Photovoltaic Production Current",
-        native_unit_of_measurement=UnitOfPower.WATT
+        native_unit_of_measurement=UnitOfPower.WATT,
         value_getter=lambda api: api.getPhotovoltaicProductionCurrent(),
         device_class=SensorDeviceClass.POWER,
         state_class=SensorStateClass.MEASUREMENT,
