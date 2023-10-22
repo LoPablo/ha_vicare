@@ -1,2 +1,2 @@
-PyViCare >= 2.28.1
+PyViCare @ git+https://github.com/LoPablo/PyViCare.git@app_test
 homeassistant >= 2023.4.1
