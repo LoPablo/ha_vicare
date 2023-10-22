@@ -501,7 +501,7 @@ GLOBAL_SENSORS: tuple[ViCareSensorEntityDescription, ...] = (
         value_getter=lambda api: api.getHumidity(),
         state_class=SensorStateClass.MEASUREMENT,
     ),
-    ViCareSensorEntityDescription(
+        ViCareSensorEntityDescription(
         key="battery_stateOfCharge",
         name="Battery State Of Charge",
         native_unit_of_measurement=PERCENTAGE,
@@ -509,11 +509,42 @@ GLOBAL_SENSORS: tuple[ViCareSensorEntityDescription, ...] = (
         device_class=SensorDeviceClass.BATTERY,
         state_class=SensorStateClass.MEASUREMENT,
     ),
-     ViCareSensorEntityDescription(
+    ViCareSensorEntityDescription(
         key="battery_operationState",
         name="Battery Operation State",
         value_getter=lambda api: api.getElectricalEnergySystemOperationState(),
         device_class=SensorDeviceClass.ENUM,
+        state_class=SensorStateClass.MEASUREMENT,
+    ),
+    ViCareSensorEntityDescription(
+        key="battery_power",
+        name="Battery Power",
+        native_unit_of_measurement=UnitOfPower.WATT
+        value_getter=lambda api: api.getElectricalEnergySystemPower(),
+        device_class=SensorDeviceClass.POWER,
+        state_class=SensorStateClass.MEASUREMENT,
+    ),
+    ViCareSensorEntityDescription(
+        key="pcc_transfer_power_exchange",
+        name="PCC Transfer Power exchange",
+        native_unit_of_measurement=UnitOfPower.WATT
+        value_getter=lambda api: api.getPointOfCommonCouplingTransferPowerExchange(),
+        device_class=SensorDeviceClass.POWER,
+        state_class=SensorStateClass.MEASUREMENT,
+    ),
+    ViCareSensorEntityDescription(
+        key="photovoltaic_status",
+        name="Photovoltaic Status",
+        value_getter=lambda api: api.getPhotovoltaicStatus(),
+        device_class=SensorDeviceClass.ENUM,
+        state_class=SensorStateClass.MEASUREMENT,
+    ),
+    ViCareSensorEntityDescription(
+        key="photovoltaic_production_current",
+        name="Photovoltaic Production Current",
+        native_unit_of_measurement=UnitOfPower.WATT
+        value_getter=lambda api: api.getPhotovoltaicProductionCurrent(),
+        device_class=SensorDeviceClass.POWER,
         state_class=SensorStateClass.MEASUREMENT,
     ),
 )
