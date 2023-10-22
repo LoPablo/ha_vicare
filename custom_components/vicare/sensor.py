@@ -501,6 +501,21 @@ GLOBAL_SENSORS: tuple[ViCareSensorEntityDescription, ...] = (
         value_getter=lambda api: api.getHumidity(),
         state_class=SensorStateClass.MEASUREMENT,
     ),
+    ViCareSensorEntityDescription(
+        key="battery_stateOfCharge",
+        name="Battery State Of Charge",
+        native_unit_of_measurement=PERCENTAGE,
+        value_getter=lambda api: api.getElectricalEnergySystemSOC(),
+        device_class=SensorDeviceClass.BATTERY,
+        state_class=SensorStateClass.MEASUREMENT,
+    ),
+     ViCareSensorEntityDescription(
+        key="battery_operationState",
+        name="Battery Operation State",
+        value_getter=lambda api: api.getElectricalEnergySystemOperationState(),
+        device_class=SensorDeviceClass.ENUM,
+        state_class=SensorStateClass.MEASUREMENT,
+    ),
 )
 
 CIRCUIT_SENSORS: tuple[ViCareSensorEntityDescription, ...] = (
