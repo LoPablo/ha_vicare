@@ -551,7 +551,7 @@ GLOBAL_SENSORS: tuple[ViCareSensorEntityDescription, ...] = (
         key="climate_sensor_battery_level",
         name="Climate Sensor Battery level",
         native_unit_of_measurement=PERCENTAGE,
-        value_getter=lambda api: api.getPhotovoltaicProductionCurrent(),
+        value_getter=lambda api: api.getBatteryPercentage(),
         device_class=SensorDeviceClass.BATTERY,
         state_class=SensorStateClass.MEASUREMENT,
     ),
