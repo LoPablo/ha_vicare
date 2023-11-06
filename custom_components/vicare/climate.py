@@ -128,10 +128,13 @@ async def async_setup_entry(
         api = device.asAutoDetectDevice()
 
         if isinstance(api, RoomControl):
+            _LOGGER.info("Found RoomControl")
+
             with suppress(PyViCareInvalidDataError):
                 rooms = await hass.async_add_executor_job(get_rooms, api)
 
                 for room in rooms:
+                    _LOGGER.info("Setting up room %i", room.id)
                     entity = ViCareRoomControlClimate(
                         f"Room Control {name}",
                         api,
