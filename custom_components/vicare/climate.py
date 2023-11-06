@@ -251,6 +251,11 @@ class ViCareRoomControlClimate(ClimateEntity):
         return self._current_temperature
 
     @property
+    def current_humidity(self):
+        """Return the current temperature."""
+        return self._current_humidity
+
+    @property
     def target_temperature(self):
         """Return the temperature we try to reach."""
         return self._target_temperature
@@ -263,17 +268,9 @@ class ViCareRoomControlClimate(ClimateEntity):
     @property
     def hvac_modes(self) -> list[HVACMode]:
         """Return the list of available hvac modes."""
-        if "vicare_modes" not in self._attributes:
-            return []
+        return [HVACMode.AUTO, HVACMode.OFF, HVACMode.HEAT]
 
-        supported_modes = self._attributes["vicare_modes"]
-        hvac_modes = []
-        for key, value in VICARE_TO_HA_HVAC_HEATING.items():
-            if value in hvac_modes:
-                continue
-            if key in supported_modes:
-                hvac_modes.append(value)
-        return hvac_modes
+
 
     @property
     def hvac_action(self) -> HVACAction:
