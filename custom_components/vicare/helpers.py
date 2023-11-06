@@ -1,7 +1,7 @@
 """Helpers for ViCare."""
 from PyViCare.PyViCareHeatingDevice import HeatingDevice
 from PyViCare.PyViCareUtils import PyViCareNotSupportedFeatureError
-
+from PyViCare.PyViCareRoomControl import RoomControl
 
 def get_unique_id(api, device_config, entity_id) -> str:
     """Return unique ID for this entity."""
@@ -26,6 +26,15 @@ def get_circuits(vicare_api):
         return []
     try:
         return vicare_api.circuits
+    except PyViCareNotSupportedFeatureError:
+        return []
+
+def get_rooms(vicare_api):
+    """Return the list of circuits."""
+    if not isinstance(vicare_api, RoomControl):
+        return []
+    try:
+        return vicare_api.rooms
     except PyViCareNotSupportedFeatureError:
         return []
 

@@ -5,6 +5,8 @@ from contextlib import suppress
 import logging
 from typing import Any
 
+from PyViCare.PyViCareRoomControl import RoomControl
+
 from PyViCare.PyViCareRadiatorActuator import RadiatorActuator
 from PyViCare.PyViCareUtils import (
     PyViCareCommandError,
@@ -41,6 +43,7 @@ from .const import DOMAIN, VICARE_DEVICE_CONFIG, VICARE_NAME
 from .helpers import (
     get_burners,
     get_circuits,
+    get_rooms,
     get_device_name,
     get_unique_device_id,
     get_unique_id,
@@ -120,31 +123,41 @@ async def async_setup_entry(
     for device in hass.data[DOMAIN][config_entry.entry_id][VICARE_DEVICE_CONFIG]:
         api = device.asAutoDetectDevice()
 
-        circuits = await hass.async_add_executor_job(get_circuits, api)
-        # Devices with circuits will get one climate entity per circuit
-        for circuit in circuits:
-            suffix = ""
-            if len(circuits) > 1:
-                suffix = f" {circuit.id}"
+        if isinstance(api, RoomControl):
+            rooms = await hass.async_add_executor_job(get_rooms, api)
 
-            entity = ViCareClimate(
-                f"{name} Heating{suffix}",
-                api,
-                circuit,
-                device,
-            )
-            entities.append(entity)
-
+            for room in rooms:
+                entity = ViCareRoomControlClimate(
+                    f"Room Control {name}",
+                    api,
+                    room,
+                    device,
+                )
+                entities.append(entity)
         # RadiatorActuator have no circuits but also create a climate entity
-        if isinstance(api, RadiatorActuator):
-            entity = ViCareThermostat(
-                f"{name} RadiatorActuator{suffix}",
-                api,
-                device,
-            )
-            entities.append(entity)
+        elif isinstance(api, RadiatorActuator):
+                entity = ViCareThermostat(
+                    f"{name} RadiatorActuator{suffix}",
+                    api,
+                    device,
+                )
+                entities.append(entity)
+        else:
+            circuits = await hass.async_add_executor_job(get_circuits, api)
+            # Devices with circuits will get one climate entity per circuit
+            for circuit in circuits:
+                suffix = ""
+                if len(circuits) > 1:
+                    suffix = f" {circuit.id}"
 
-            
+                entity = ViCareClimate(
+                    f"{name} Heating{suffix}",
+                    api,
+                    circuit,
+                    device,
+                )
+                entities.append(entity)
+
 
     platform = entity_platform.async_get_current_platform()
 
@@ -177,6 +190,82 @@ async def async_setup_entry(
 
     async_add_entities(entities)
 
+class ViCareRoomControlClimate(ClimateEntity):
+    _attr_precision = PRECISION_TENTHS
+    _attr_supported_features = (
+            ClimateEntityFeature.TARGET_TEMPERATURE | ClimateEntityFeature.PRESET_MODE
+    )
+    _attr_temperature_unit = UnitOfTemperature.CELSIUS
+
+    def __init__(self, name, api , room, device_config):
+        """Initialize the climate device."""
+        self._name = name
+        self._state = None
+        self._api = api
+        self._room = room
+        self._device_config = device_config
+        self._attributes = {}
+        self._current_humidity = None
+        self._target_temperature = None
+        self._current_temperature = None
+        self.update()
+
+    @property
+    def unique_id(self) -> str:
+        """Return unique ID for this device."""
+        return get_unique_id(self._api, self._device_config, self._room.id)
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return device info for this device."""
+        return DeviceInfo(
+            identifiers={
+                (
+                    DOMAIN,
+                    get_unique_device_id(self._device_config),
+                )
+            },
+            name=get_device_name(self._device_config),
+            manufacturer="Viessmann",
+            model=self._device_config.getModel(),
+            configuration_url="https://viguide.viessmann.com/",
+        )
+
+    @property
+    def name(self):
+        """Return the name of the climate device."""
+        return self._name
+
+    @property
+    def current_temperature(self):
+        """Return the current temperature."""
+        return self._current_temperature
+
+    @property
+    def target_temperature(self):
+        """Return the temperature we try to reach."""
+        return self._target_temperature
+
+
+    def update(self) -> None:
+        """Let HA know there has been an update from the ViCare API."""
+        try:
+            with suppress(PyViCareNotSupportedFeatureError):
+                self._current_temperature = self._room.getTemperature()
+
+            with suppress(PyViCareNotSupportedFeatureError):
+                self._current_humidity = self._room.getHumidity()
+
+            with suppress(PyViCareNotSupportedFeatureError):
+                self._target_temperature = self._room.getCurrentDesiredTemperature()
+
+        except (requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout):
+            _LOGGER.error("Unable to retrieve data from ViCare server")
+        except PyViCareRateLimitError as limit_exception:
+            _LOGGER.error("Vicare API rate limit exceeded: %s", limit_exception)
+        except ValueError:
+            _LOGGER.error("Unable to decode data from ViCare server")
+        except PyViCareInvalidDataError as invalid_data_exception:
+            _LOGGER.error("Invalid data from Vicare server: %s", invalid_data_exception)
 
 class ViCareClimate(ClimateEntity):
     """Representation of the ViCare heating climate device."""
