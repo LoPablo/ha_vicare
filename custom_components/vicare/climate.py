@@ -372,7 +372,7 @@ class ViCareClimate(ClimateEntity):
                 _supply_temperature = self._circuit.getSupplyTemperature()
 
             with suppress(PyViCareNotSupportedFeatureError):
-                self._current_mode = self._room.getActiveMode()
+                self._current_mode = self._circuit.getActiveMode()
 
             if _room_temperature is not None:
                 self._current_temperature = _room_temperature
