@@ -136,7 +136,7 @@ async def async_setup_entry(
                 for room in rooms:
                     _LOGGER.info("Setting up room %i", room.id)
                     entity = ViCareRoomControlClimate(
-                        f"Room Control {name}",
+                        f"{room.getName()}",
                         api,
                         room,
                         device,
