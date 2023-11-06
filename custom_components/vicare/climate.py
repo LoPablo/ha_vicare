@@ -124,16 +124,17 @@ async def async_setup_entry(
         api = device.asAutoDetectDevice()
 
         if isinstance(api, RoomControl):
-            rooms = await hass.async_add_executor_job(get_rooms, api)
+            with suppress(PyViCareInvalidDataError):
+                rooms = await hass.async_add_executor_job(get_rooms, api)
 
-            for room in rooms:
-                entity = ViCareRoomControlClimate(
-                    f"Room Control {name}",
-                    api,
-                    room,
-                    device,
-                )
-                entities.append(entity)
+                for room in rooms:
+                    entity = ViCareRoomControlClimate(
+                        f"Room Control {name}",
+                        api,
+                        room,
+                        device,
+                    )
+                    entities.append(entity)
         # RadiatorActuator have no circuits but also create a climate entity
         elif isinstance(api, RadiatorActuator):
                 entity = ViCareThermostat(
