@@ -66,6 +66,9 @@ VICARE_MODE_FORCEDREDUCED = "forcedReduced"
 VICARE_MODE_FORCEDNORMAL = "forcedNormal"
 VICARE_MODE_OFF = "standby"
 
+VICARE_ACTION_IDLE = "energySaving"
+VICARE_ACTION_HEATING = "heating"
+
 VICARE_PROGRAM_ACTIVE = "active"
 VICARE_PROGRAM_COMFORT = "comfort"
 VICARE_PROGRAM_ECO = "eco"
@@ -97,6 +100,7 @@ VICARE_TO_HA_HVAC_HEATING = {
     VICARE_MODE_HEATING: HVACMode.AUTO,
     VICARE_MODE_FORCEDNORMAL: HVACMode.HEAT,
 }
+
 
 VICARE_TO_HA_PRESET_HEATING = {
     VICARE_PROGRAM_COMFORT: PRESET_COMFORT,
@@ -194,7 +198,7 @@ async def async_setup_entry(
 class ViCareRoomControlClimate(ClimateEntity):
     _attr_precision = PRECISION_TENTHS
     _attr_supported_features = (
-            ClimateEntityFeature.TARGET_TEMPERATURE | ClimateEntityFeature.PRESET_MODE
+            ClimateEntityFeature.TARGET_TEMPERATURE
     )
     _attr_temperature_unit = UnitOfTemperature.CELSIUS
 
@@ -206,6 +210,8 @@ class ViCareRoomControlClimate(ClimateEntity):
         self._room = room
         self._device_config = device_config
         self._attributes = {}
+        self._current_mode = None
+        self._current_action = None
         self._current_humidity = None
         self._target_temperature = None
         self._current_temperature = None
@@ -246,6 +252,32 @@ class ViCareRoomControlClimate(ClimateEntity):
         """Return the temperature we try to reach."""
         return self._target_temperature
 
+    @property
+    def hvac_mode(self) -> HVACMode | None:
+        """Return current hvac mode."""
+        return self._current_mode
+
+    @property
+    def hvac_modes(self) -> list[HVACMode]:
+        """Return the list of available hvac modes."""
+        if "vicare_modes" not in self._attributes:
+            return []
+
+        supported_modes = self._attributes["vicare_modes"]
+        hvac_modes = []
+        for key, value in VICARE_TO_HA_HVAC_HEATING.items():
+            if value in hvac_modes:
+                continue
+            if key in supported_modes:
+                hvac_modes.append(value)
+        return hvac_modes
+
+    @property
+    def hvac_action(self) -> HVACAction:
+        """Return the current hvac action."""
+        if self._current_action:
+            return HVACAction.HEATING
+        return HVACAction.IDLE
 
     def update(self) -> None:
         """Let HA know there has been an update from the ViCare API."""
@@ -258,6 +290,18 @@ class ViCareRoomControlClimate(ClimateEntity):
 
             with suppress(PyViCareNotSupportedFeatureError):
                 self._target_temperature = self._room.getCurrentDesiredTemperature()
+
+            with suppress(PyViCareNotSupportedFeatureError):
+                if self._room.getRoomStandby():
+                    self._current_mode = HVACMode.OFF
+                else:
+                    self._current_mode = HVACMode.AUTO
+
+            self._current_action = False
+            # Update the specific device attributes
+            with suppress(PyViCareNotSupportedFeatureError):
+                if self._room.getOperatingStateDemand() == VICARE_ACTION_HEATING:
+                    self._current_action = True
 
         except (requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout):
             _LOGGER.error("Unable to retrieve data from ViCare server")
@@ -326,6 +370,9 @@ class ViCareClimate(ClimateEntity):
             _supply_temperature = None
             with suppress(PyViCareNotSupportedFeatureError):
                 _supply_temperature = self._circuit.getSupplyTemperature()
+
+            with suppress(PyViCareNotSupportedFeatureError):
+                self._current_mode = self._room.getActiveMode()
 
             if _room_temperature is not None:
                 self._current_temperature = _room_temperature
