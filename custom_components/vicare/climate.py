@@ -234,7 +234,7 @@ class ViCareRoomControlClimate(ClimateEntity):
                     get_unique_device_id(self._device_config) + self._room.id,
                 )
             },
-            name=get_device_name(self._device_config),
+            name=self._name,
             manufacturer="Viessmann",
             model=self._device_config.getModel(),
             configuration_url="https://viguide.viessmann.com/",
