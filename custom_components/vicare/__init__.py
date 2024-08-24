@@ -155,7 +155,7 @@ def setup_vicare_api(hass, entry):
 
     # Premium subscription allows 3000 vs 1450 API calls per day
     if CONF_PREMIUM in entry.data and entry.data[CONF_PREMIUM]:
-        scan_interval = scan_interval/4
+        scan_interval = 30
     
     _LOGGER.info(
          "Setting up API with scan interval %i seconds.", scan_interval
