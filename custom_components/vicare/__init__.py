@@ -151,7 +151,7 @@ def vicare_login(hass, entry_data, scan_interval = DEFAULT_SCAN_INTERVAL):
 def setup_vicare_api(hass, entry):
     """Set up PyVicare API."""
     vicare_api = vicare_login(hass, entry.data)
-    scan_interval = max(DEFAULT_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL * len(vicare_api.devices))
+    scan_interval = 30
 
     # Premium subscription allows 3000 vs 1450 API calls per day
     if CONF_PREMIUM in entry.data and entry.data[CONF_PREMIUM]:
@@ -167,7 +167,7 @@ def setup_vicare_api(hass, entry):
         _LOGGER.info(
             "Found device: %s (online: %s)", device.getModel(), str(device.isOnline())
         )
-        device.service._PyViCareCachedService__cacheDuration = DEFAULT_SCAN_INTERVAL * len(vicare_api.devices)
+        device.service._PyViCareCachedService__cacheDuration = 30
 
 
     hass.data[DOMAIN][entry.entry_id][VICARE_DEVICE_CONFIG] = vicare_api.devices
