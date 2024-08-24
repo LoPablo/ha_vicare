@@ -231,7 +231,7 @@ class ViCareRoomControlClimate(ClimateEntity):
             identifiers={
                 (
                     DOMAIN,
-                    get_unique_device_id(self._device_config),
+                    get_unique_device_id(self._device_config) + self._room.id,
                 )
             },
             name=get_device_name(self._device_config),
